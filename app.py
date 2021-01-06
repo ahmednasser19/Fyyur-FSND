@@ -204,9 +204,7 @@ def create_venue_submission():
     flash('An error happened Venue ' + request.form['name']+ ' can not  be added')
   if not error: 
     flash('Venue ' + request.form['name'] + ' was successfully added!')
-
-
-  return render_template('pages/home.html')
+    return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -391,15 +389,37 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  error = False
+  try: 
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    phone = request.form['phone']
+    genres = request.form.getlist('genres'),
+    facebook_link = request.form['facebook_link']
+    image_link = request.form['image_link']
+    website = request.form['website']
+    seeking_venue = True if 'seeking_venue' in request.form else False
+    seeking_description = request.form['seeking_description']
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
+
+    artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link  , image_link=image_link, website=website, seeking_venue=seeking_venue, seeking_description=seeking_description)
+    db.session.add(artist)
+    db.session.commit()
+  except: 
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally: 
+    db.session.close()
+  if error: 
+    flash('An error occurred. Artist ' + request.form['name']+ ' could not be listed.')
+  if not error: 
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+    return render_template('pages/home.html')
+
+
+
 
 
 #  Shows
