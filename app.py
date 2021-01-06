@@ -24,7 +24,7 @@ def format_datetime(value, format='medium'):
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format)
+  return babel.dates.format_datetime(date, format locale='en')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -169,6 +169,7 @@ def show_venue(venue_id):
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
   form = VenueForm()
+  
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
@@ -204,7 +205,7 @@ def create_venue_submission():
     flash('An error happened Venue ' + request.form['name']+ ' can not  be added')
   if not error: 
     flash('Venue ' + request.form['name'] + ' was successfully added!')
-    return render_template('pages/home.html')
+  return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -416,7 +417,7 @@ def create_artist_submission():
     flash('An error occurred. Artist ' + request.form['name']+ ' could not be listed.')
   if not error: 
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
-    return render_template('pages/home.html')
+  return render_template('pages/home.html')
 
 
 
@@ -476,14 +477,27 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-  # called to create new shows in the db, upon submitting new show listing form
-  # TODO: insert form data as a new Show record in the db, instead
+  error = False
+  try: 
+    artist_id = request.form['artist_id']
+    venue_id = request.form['venue_id']
+    start_time = request.form['start_time']
 
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+    print(request.form)
+
+    show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
+    db.session.add(show)
+    db.session.commit()
+  except: 
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally: 
+    db.session.close()
+  if error: 
+    flash('An error happned  show can not be listed')
+  if not error: 
+    flash('show was successfully listed')
   return render_template('pages/home.html')
 
 @app.errorhandler(404)
