@@ -147,7 +147,7 @@ class ArtistForm(Form):
     )
     state = SelectField(
         'state', validators=[DataRequired()],
-       choices=state_choices
+        choices=state_choices
     )
     phone = StringField(
         # TODO implement validation logic for state
